@@ -50,7 +50,7 @@ module "autoscaling" {
   wait_for_capacity_timeout = 0
   health_check_type         = "EC2"
   vpc_zone_identifier       = module.blog_vpc.public_subnets
-  
+  target_group_arns         = modules.blog_alb.target_group_arns
   security_groups           = [module.blog_sg.security_group_id]
 
   image_id      = data.aws_ami.app_ami.id
@@ -71,11 +71,21 @@ module "blog_alb" {
       port     = 80
       protocol = "HTTP"
      
-   
+      forward = {
+        target_group_key = "ex-instance"
+      }
     }
   }
 
-
+  target_groups = {
+    ex-instance = {
+      name_prefix      = "blog"
+      protocol         = "HTTP"
+      port             = 80
+      target_type      = "instance"
+    
+    }
+  }
 
   tags = {
     Environment = "dev"
